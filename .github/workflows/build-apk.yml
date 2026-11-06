@@ -28,11 +28,12 @@ jobs:
           echo "e8d0b42778370848295bdbadf3ab79e48ea59ad9741551b0c4079116aa51cb74  app/src/main/assets/index.html" | sha256sum -c -
           test -s app/src/main/assets/index.html
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Android 35
-        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+      - name: Install Android 35 using runner SDK
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          command -v sdkmanager
+          yes | sdkmanager --licenses > /dev/null || true
+          sdkmanager --install "platforms;android-35" "build-tools;35.0.0"
 
       - name: Set up Gradle 8.9
         uses: gradle/actions/setup-gradle@v4
