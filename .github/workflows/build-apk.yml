@@ -21,12 +21,27 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Validate chapter II JavaScript
+        run: node --check story/chapter2_v07.js
+
       - name: Assemble offline story source
         run: |
           mkdir -p app/src/main/assets
           cat story/parts/part-*.txt > app/src/main/assets/index.html
           echo "e8d0b42778370848295bdbadf3ab79e48ea59ad9741551b0c4079116aa51cb74  app/src/main/assets/index.html" | sha256sum -c -
-          test -s app/src/main/assets/index.html
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('app/src/main/assets/index.html')
+          old = p.read_text(encoding='utf-8')
+          addon = Path('story/chapter2_v07.js').read_text(encoding='utf-8')
+          marker = 'settingsLoad();load();showCover();'
+          assert old.count(marker) == 1, "0.6 bootstrap marker not found uniquely"
+          p.write_text(old.replace(marker, addon + '\n' + marker).replace(
+              '<title>Дочь двух миров — Песнь прилива</title>',
+              '<title>Дочь двух миров — главы I и II</title>'),
+              encoding='utf-8')
+          assert p.stat().st_size > 5900000
+          PY
 
       - name: Install Android 35 using runner SDK
         run: |
@@ -51,7 +66,7 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Doch_dvuh_mirov_v06_debug_APK
+          name: Doch_dvuh_mirov_v07_debug_APK
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 30
